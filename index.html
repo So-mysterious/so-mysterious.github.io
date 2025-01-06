@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html data-lang="zh">
+    <!-- 头部信息 -->
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title data-i18n="title">个人网站</title>
+        <!-- 引入外部样式表 -->
+        <link rel="stylesheet" href="style.css">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+        <script>
+            // 主题切换功能
+            function toggleTheme() {
+                const html = document.documentElement;
+                const switchElement = document.querySelector('.switch');
+                const currentTheme = html.getAttribute('data-theme');
+
+                if (currentTheme === 'dark') {
+                    html.removeAttribute('data-theme');
+                    switchElement.classList.remove('active');
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    html.setAttribute('data-theme', 'dark');
+                    switchElement.classList.add('active'); 
+                    localStorage.setItem('theme', 'dark');
+                }
+            }
+
+            // 页面加载时应用保存的主题
+            document.addEventListener('DOMContentLoaded', () => {
+                const savedTheme = localStorage.getItem('theme');
+                const html = document.documentElement;
+                const switchElement = document.querySelector('.switch');
+
+                if (savedTheme === 'dark') {
+                    html.setAttribute('data-theme', 'dark');
+                    switchElement.classList.add('active');
+                }
+            });
+
+            // ===== 页面导航功能 =====
+            document.addEventListener('DOMContentLoaded', () => {
+                // 为"介绍"按钮添加点击事件
+                document.querySelectorAll('.nav-btn').forEach(button => {
+                    if (button.getAttribute('data-i18n') === 'nav.intro') {
+                        button.addEventListener('click', () => {
+                            window.scrollTo({
+                                top: 0,
+                                behavior: 'smooth'
+                            });
+                        });
+                    }
+                });
+
+                // 为"文章"按钮添加点击事件 
+                document.querySelectorAll('.nav-btn').forEach(button => {
+                    if (button.getAttribute('data-i18n') === 'nav.articles') {
+                        button.addEventListener('click', () => {
+                            const articleNav = document.querySelector('.article-nav');
+                            const articleNavTop = articleNav.offsetTop;
+                            window.scrollTo({
+                                top: articleNavTop - 70, // 减去70px的偏移量,避免导航栏遮挡
+                                behavior: 'smooth'
+                            });
+                        });
+                    }
+                });
+            });
+
+            // 文章分类过滤功能
+            function filterArticles(category) {
+                // 更新按钮激活状态
+                document.querySelectorAll('.article-nav .nav-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                event.target.classList.add('active');
+                
+                // 根据分类过滤文章显示
+                const articles = document.querySelectorAll('.article-item');
+                articles.forEach(article => {
+                    const categories = article.dataset.categories.split(',');
+                    article.style.display = (category === 'all' || categories.includes(category)) ? 'block' : 'none';
+                });
+            }
+        </script>
+        <!-- 语言切换功能 -->
+        <script>
+            // 语言配置表
+            const translations = {
+                zh: {
+                    "title": "个人网站",
+                    "profile": {
+                        "photo": {
+                            "alt": "个人照片"
+                        },
+                        "name": "杜雨承"
+                    },
+                    "sidebar": {
+                        "email": "邮箱",
+                        "wechat": "微信公众号",
+                    },
+                    "nav": {
+                        "intro": "介绍",
+                        "articles": "文章"
+                    },
+                    "intro": {
+                        "self": "自我介绍",
+                        "selfContent": "2017-2020 北师大附中<br>2020-2024 中财经济学院",
+                        "research": "研究兴趣",
+                        "researchContent": "区块链、哲学、阅读、翻译、其他"
+                    },
+                    "articleCategories": {
+                        "all": "全部",
+                        "philosophy": "哲学", 
+                        "blockchain": "区块链",
+                        "reading": "阅读",
+                        "translation": "翻译",
+                        "others": "其他"
+                    }
+                },
+                en: {
+                    "title": "Personal Website",
+                    "profile": {
+                        "photo": {
+                            "alt": "Profile Photo"
+                        },
+                        "name": "Du Yucheng"
+                    },
+                    "sidebar": {
+                        "email": "Email",
+                        "wechat": "WeChat",
+                    },
+                    "nav": {
+                        "intro": "Introduction",
+                        "articles": "Articles"
+                    },
+                    "intro": {
+                        "self": "About Me",
+                        "selfContent": "2017-2020 High School Affiliated to BNU<br>2020-2024 Central University of Finance and Economics",
+                        "research": "Research Interests",
+                        "researchContent": "Blockchain, Philosophy, Reading, Translation, Others"
+                    },
+                    "articleCategories": {
+                        "all": "All",
+                        "philosophy": "Philo",
+                        "blockchain": "Blockchain",
+                        "reading": "Reading",
+                        "translation": "Trans",
+                        "others": "Others"
+                    }
+                }
+            };
+
+            // 当前语言设置(默认中文)
+            let currentLanguage = "zh";
+            
+            // 切换语言功能
+            function toggleLanguage() {
+                currentLanguage = currentLanguage === "en" ? "zh" : "en";
+                updateContent();
+                document.documentElement.setAttribute('data-lang', currentLanguage);
+            }
+
+            // 更新页面内容
+            function updateContent() {
+                document.querySelectorAll("[data-i18n]").forEach((element) => {
+                    const key = element.getAttribute("data-i18n");
+                    const keys = key.split('.');
+                    let translation = translations[currentLanguage];
+                    
+                    // 递归获取嵌套翻译值
+                    for(const k of keys) {
+                        if(translation && translation[k]) {
+                            translation = translation[k];
+                        } else {
+                            translation = null;
+                            break;
+                        }
+                    }
+
+                    if (translation) {
+                        if(element.tagName.toLowerCase() === 'p') {
+                            element.innerHTML = translation;
+                        } else {
+                            element.textContent = translation;
+                        }
+                    }
+                });
+            }
+
+            // 页面加载时初始化内容
+            document.addEventListener("DOMContentLoaded", updateContent);
+        </script>
+    </head>
+
+<body>
+<!-- 页面主容器 -->
+<div class="container">
+
+    <!-- 侧边栏导航 -->
+    <nav class="sidebar">
+
+        <!-- 个人信息区域 -->
+        <div class="profile-photo">
+            <img src="images/个人头像.JPG" alt="个人照片" data-i18n="profile.photo.alt">
+        </div>
+        <h1 class="profile-name" data-i18n="profile.name">杜雨承</h1>
+
+        <!-- 社交链接区域 -->
+        <div class="social-links">
+
+            <!-- 邮箱信息 -->
+            <div class="email-container">
+                <a href="mailto:duyucheng0603@sina.com" class="social-link">
+                    <i class="fas fa-envelope"></i> <span data-i18n="sidebar.email">邮箱</span>
+                </a>
+                <div class="email-tooltip">
+                    <div>duyucheng0603@sina.com</div>
+                    <div>duyucheng0603@outlook.com</div>
+                </div>
+            </div>
+
+            <!-- GitHub链接 -->
+            <a href="https://github.com/So-mysterious" class="social-link">
+                <i class="fab fa-github"></i> GitHub
+            </a>
+
+            <!-- 微信公众号信息 -->
+            <div class="email-container">
+                <a href="https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz=Mzg3OTgxMzY3Mg==&scene=124#wechat_redirect" class="social-link">
+                    <i class="fab fa-weixin"></i> <span data-i18n="sidebar.wechat">微信公众号</span>
+                </a>
+                <div class="email-tooltip">
+                    <div data-i18n="sidebar.wechat.name">退身庵笔记</div>
+                </div>
+            </div>
+        
+        </div>
+    </nav>
+
+    <!-- 主要内容区域 -->
+    <main class="main-content">
+
+        <!-- 顶部导航栏 -->
+        <div class="top-nav" style="position: fixed; top: 0; left: 200px; right: 0; background: var(--background-color); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; z-index: 1000; border-bottom: 1px solid var(--border-color);">
+            
+            <!-- 导航按钮 -->
+            <div class="nav-buttons">
+                <button class="nav-btn" data-i18n="nav.intro">介绍</button>
+                <button class="nav-btn" data-i18n="nav.articles">文章</button>
+            </div>
+            
+            <!-- 语言切换按钮 -->
+            <div class="lang-toggle">
+                <div class="lang-button" onclick="toggleLanguage()">
+                    <i class="material-icons">translate</i>
+                </div>
+            </div>
+
+            <!-- 主题切换按钮 -->
+            <div class="theme-toggle" onclick="toggleTheme()">
+                <span class="material-icons">wb_sunny</span>
+                <div class="switch">
+                    <div class="circle"></div>
+                </div>
+                <span class="material-icons">dark_mode</span>
+            </div>
+        </div>
+    
+        <!-- 个人介绍部分 -->
+        <section class="intro-section">
+            <div class="intro-text">
+                <!-- 自我介绍 -->
+                <div class="intro-box">
+                    <h1><span data-i18n="intro.self">自我介绍</span></h1>
+                    <p data-i18n="intro.selfContent">2017-2020 北师大附中<br>2020-2024 中财经济学院</p>
+                </div>
+                <!-- 研究兴趣 -->
+                <div class="intro-box">
+                    <h2><span data-i18n="intro.research">研究兴趣</span></h2>
+                    <p data-i18n="intro.researchContent">区块链、哲学、阅读、翻译、其他</p>
+                </div>
+            </div>
+            <!-- 个人照片 -->
+            <div class="intro-photo">
+                <img src="images/个人照片.JPG" alt="个人照片" data-i18n="profile.photo.alt">
+            </div>
+        </section>
+
+        <!-- 文章分类导航 -->
+        <nav class="article-nav">
+            <button onclick="filterArticles('all')" class="nav-btn active" data-i18n="articleCategories.all">全部</button>
+            <button onclick="filterArticles('philosophy')" class="nav-btn" data-i18n="articleCategories.philosophy">哲学</button>
+            <button onclick="filterArticles('blockchain')" class="nav-btn" data-i18n="articleCategories.blockchain">区块链</button>
+            <button onclick="filterArticles('reading')" class="nav-btn" data-i18n="articleCategories.reading">阅读</button>
+            <button onclick="filterArticles('translation')" class="nav-btn" data-i18n="articleCategories.translation">翻译</button>
+            <button onclick="filterArticles('others')" class="nav-btn" data-i18n="articleCategories.others">其他</button>
+        </nav>
+
+        <!-- 文章列表部分 -->
+        <section class="articles-container">
+            <article class="article-item" data-categories="others" data-date="2024-02-15" style="display: block;">
+                <div class="article-date">2024-02-15</div>
+                <a href="#" class="article-title">恨无恋爱脑之勇</a>
+            </article>
+            <article class="article-item" data-categories="philosophy" data-date="2023-03-15" style="display: block;">
+                <div class="article-date">2023-03-15</div>
+                <a href="#" class="article-title">孙老师的迷烟、沉默和模态逻辑</a>
+            </article>
+            <article class="article-item" data-categories="blockchain,translation" data-date="2022-11-19" style="display: block;">
+                <div class="article-date">2022-11-19</div>
+                <a href="#" class="article-title">读Vitalik：What do I think about network states?</a>
+            </article>
+            <article class="article-item" data-categories="blockchain,translation" data-date="2022-11-09" style="display: block;">
+                <div class="article-date">2022-11-09</div>
+                <a href="#" class="article-title">读Vitalik：The Revenue-Evil Curve</a>
+            </article>
+            <article class="article-item" data-categories="blockchain,translation" data-date="2022-10-12" style="display: block;">
+                <div class="article-date">2022-10-12</div>
+                <a href="#" class="article-title">读Vitalik：DAOs are not corporations</a>
+            </article>
+            <article class="article-item" data-categories="blockchain" data-date="2022-10-02" style="display: block;">
+                <div class="article-date">2022-10-02</div>
+                <a href="#" class="article-title">融入Crypto圈主张的逻辑问题</a>
+            </article>
+            <article class="article-item" data-categories="blockchain,philosophy" data-date="2022-09-23" style="display: block;">
+                <div class="article-date">2022-09-23</div>
+                <a href="#" class="article-title">区块链技术会成为全景监狱的帮凶吗？</a>
+            </article>
+            <article class="article-item" data-categories="reading,philosophy" data-date="2022-08-26" style="display: block;">
+                <div class="article-date">2022-08-26</div>
+                <a href="#" class="article-title">渣男的哲学</a>
+            </article>
+            <article class="article-item" data-categories="philosophy,others" data-date="2022-07-25" style="display: block;">
+                <div class="article-date">2022-07-25</div>
+                <a href="#" class="article-title">枯木龙吟照大千</a>
+            </article>
+            <article class="article-item" data-categories="reading,others" data-date="2022-07-05" style="display: block;">
+                <div class="article-date">2022-07-05</div>
+                <a href="article2：弄瞎阿紫/article2：弄瞎阿紫.html" class="article-title">那个替我弄瞎阿紫的男人走了</a>
+            </article>
+            <article class="article-item" data-categories="others" data-date="2022-06-11" style="display: block;">
+                <div class="article-date">2022-06-11</div>
+                <a href="article1：发刊词/article1：发刊词.html" class="article-title">发刊词：我为什么开始写公众号</a>
+            </article>
+        </section>
+    </main>
+</div>
+
+</body>
+</html>
