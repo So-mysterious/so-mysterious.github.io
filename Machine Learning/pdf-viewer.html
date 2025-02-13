@@ -129,7 +129,7 @@
         }
 
         // 加载PDF文件
-        pdfjsLib.getDocument('/Machine Learning/pdfs/ML- Python.pdf').promise.then(function(pdfDoc_) {
+        pdfjsLib.getDocument('../pdfs/ML- Python.pdf').promise.then(function(pdfDoc_) {
             pdfDoc = pdfDoc_;
             pageCountSpan.textContent = pdfDoc.numPages;
             renderPage(pageNum);
