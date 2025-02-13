@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF查看器</title>
+    <!-- 引入PDF.js库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        #pdf-container {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        #pdf-viewer {
+            width: 100%;
+            height: 800px;
+            border: 1px solid #ccc;
+        }
+        .controls {
+            margin: 20px 0;
+            text-align: center;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 0 5px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #page-num {
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="pdf-container">
+        <div class="controls">
+            <button id="prev">上一页</button>
+            <span>第 <span id="page-num"></span> 页 / 共 <span id="page-count"></span> 页</span>
+            <button id="next">下一页</button>
+        </div>
+        <canvas id="pdf-viewer"></canvas>
+    </div>
+
+    <script>
+        // 配置PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        // 获取元素
+        const canvas = document.getElementById('pdf-viewer');
+        const ctx = canvas.getContext('2d');
+        const prevButton = document.getElementById('prev');
+        const nextButton = document.getElementById('next');
+        const pageNumSpan = document.getElementById('page-num');
+        const pageCountSpan = document.getElementById('page-count');
+
+        let pdfDoc = null;
+        let pageNum = 1;
+        let pageRendering = false;
+        let pageNumPending = null;
+        let scale = 1.5;
+
+        // 渲染页面
+        function renderPage(num) {
+            pageRendering = true;
+            pdfDoc.getPage(num).then(function(page) {
+                const viewport = page.getViewport({scale: scale});
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+
+                const renderTask = page.render(renderContext);
+
+                renderTask.promise.then(function() {
+                    pageRendering = false;
+                    if (pageNumPending !== null) {
+                        renderPage(pageNumPending);
+                        pageNumPending = null;
+                    }
+                });
+            });
+
+            pageNumSpan.textContent = num;
+        }
+
+        // 切换页面
+        function queueRenderPage(num) {
+            if (pageRendering) {
+                pageNumPending = num;
+            } else {
+                renderPage(num);
+            }
+        }
+
+        function onPrevPage() {
+            if (pageNum <= 1) {
+                return;
+            }
+            pageNum--;
+            queueRenderPage(pageNum);
+        }
+
+        function onNextPage() {
+            if (pageNum >= pdfDoc.numPages) {
+                return;
+            }
+            pageNum++;
+            queueRenderPage(pageNum);
+        }
+
+        // 加载PDF文件
+        pdfjsLib.getDocument('./Machine Learning/pdfs/ML- Python.pdf').promise.then(function(pdfDoc_) {
+            pdfDoc = pdfDoc_;
+            pageCountSpan.textContent = pdfDoc.numPages;
+            renderPage(pageNum);
+        }).catch(function(error) {
+            console.error('Error loading PDF:', error);
+            alert('PDF加载失败，请检查文件路径是否正确。错误信息：' + error.message);
+        });
+
+        // 添加按钮事件监听
+        prevButton.addEventListener('click', onPrevPage);
+        nextButton.addEventListener('click', onNextPage);
+    </script>
+</body>
+</html> 
